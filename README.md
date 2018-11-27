@@ -9,7 +9,7 @@
 ### Installation
 
 ```bash
-$ npm i @inc/restify-mongoose -D
+$ npm i @inc/restify-mongoose -S
 ```
 
 
