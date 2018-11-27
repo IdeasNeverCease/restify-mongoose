@@ -36,7 +36,7 @@
   },
   "license": "ISC",
   "main": "index.js",
-  "name": "restify-mongoose",
+  "name": "@inc/restify-mongoose",
   "repository": {
     "type": "git",
     "url": "https://git.inc.sh/IdeasNeverCease/restify-mongoose.git"
