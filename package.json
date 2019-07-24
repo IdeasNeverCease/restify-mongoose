@@ -7,20 +7,20 @@
     "url": "https://hub.socii.network/inc"
   },
   "dependencies": {
-    "async": "^2.6.1",
-    "mongoose": "^5.3.13",
-    "restify": "^7.2.3",
-    "restify-errors": "^6.1.1"
+    "async": "^3.1.0",
+    "mongoose": "^5.6.6",
+    "restify": "^8.3.3",
+    "restify-errors": "^8.0.0"
   },
   "description": "Provides a resource abstraction to expose mongoose models as REST resources.",
   "devDependencies": {
-    "@inc/eslint-config": "^1.1.2",
-    "eslint": "^5.9.0",
-    "husky": "^1.2.0",
+    "@inc/eslint-config": "^2019.7.23",
+    "eslint": "^6.1.0",
+    "husky": "^3.0.1",
     "npm-run-all": "^4.1.5",
     "snazzy": "^8.0.0",
-    "standardx": "^3.0.1",
-    "updates": "^5.3.0"
+    "standardx": "^4.0.0",
+    "updates": "^8.5.1"
   },
   "engines": {
     "node": ">=11.0.0"
@@ -28,7 +28,7 @@
   "eslintConfig": {
     "extends": "@inc"
   },
-  "homepage": "https://git.inc.sh/IdeasNeverCease/restify-mongoose",
+  "homepage": "https://code.webb.page/IdeasNeverCease/restify-mongoose",
   "husky": {
     "hooks": {
       "pre-commit": "npm run format && git add -A :/"
@@ -37,15 +37,12 @@
   "license": "ISC",
   "main": "index.js",
   "name": "@inc/restify-mongoose",
-  "repository": {
-    "type": "git",
-    "url": "https://git.inc.sh/IdeasNeverCease/restify-mongoose.git"
-  },
+  "repository": "https://code.webb.page/IdeasNeverCease/restify-mongoose",
   "scripts": {
     "format": "eslint '**/*.js' --fix",
     "test": "run-s test:*",
     "test:dependencies": "updates --update ./",
     "test:lint": "standardx --verbose | snazzy"
   },
-  "version": "1.0.1"
+  "version": "2019.07.24"
 }

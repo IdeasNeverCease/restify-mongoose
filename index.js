@@ -18,9 +18,8 @@ const util = require("util");
 //  P R O G R A M
 
 const restifyError = function(err) {
-  if ("ValidationError" !== err.name) {
+  if (err.name !== "ValidationError")
     return err;
-  }
 
   const returnError = new restifyErrors.InvalidContentError({
     message: "ValidationError"
@@ -37,9 +36,8 @@ const emitEvent = function(self, event) {
   return function(model, cb) {
     self.emit(event, model);
 
-    if (cb) {
+    if (cb)
       cb(null, model);
-    }
   };
 };
 
@@ -50,10 +48,8 @@ const sendData = function(res, format, modelName, status) {
 
       responseObj[modelName] = model;
       res.json(status, responseObj);
-    }
-    else {
-      res.send(status, model);
-    }
+    } else res.send(status, model);
+
     cb(null, model);
   };
 };
@@ -69,14 +65,11 @@ const execQueryWithTotCount = function(query, countQuery) {
       }
     },
     function(err, results) {
-      if (err) {
+      if (err)
         return cb(restifyError(err));
-      }
-      else {
+      else
         cb(null, results.models, results.count);
-      }
     });
-
   };
 };
 
@@ -92,6 +85,7 @@ const execBeforeSave = function(req, model, beforeSave) {
       cb();
     };
   }
+
   return function(cb) {
     beforeSave(req, model, cb);
   };
@@ -100,12 +94,10 @@ const execBeforeSave = function(req, model, beforeSave) {
 const execSave = function(model) {
   return function(cb) {
     model.save(function(err, model) {
-      if (err) {
+      if (err)
         return cb(restifyError(err));
-      }
-      else {
+      else
         cb(null, model);
-      }
     });
   };
 };
@@ -130,9 +122,9 @@ const setLocationHeader = function(req, res, isNewResource, baseUrl) {
   return function(model, cb) {
     let url = baseUrl + req.url;
 
-    if (isNewResource) {
+    if (isNewResource)
       url = url + "/" + model._id;
-    }
+
     res.header("Location", url);
     cb(null, model);
   };
@@ -150,9 +142,8 @@ const buildProjections = function(req, projection) {
 
 const buildProjection = function(req, projection) {
   return function(model, cb) {
-    if (!model) {
+    if (!model)
       return cb(new restifyErrors.ResourceNotFoundError(req.params.id));
-    }
 
     projection(req, model, cb);
   };
@@ -164,7 +155,8 @@ const parseCommaParam = function(commaParam) {
 
 const applyPageLinks = function(req, res, page, pageSize, baseUrl) {
   function makeLink(page, rel) {
-    const path = url.parse(req.url, true);
+    // const path = url.parse(req.url, true); // `url.parse` is deprecated
+    const path = new URL(req.url);
 
     path.query.p = page;
     delete path.search; // required for url.format to re-generate querystring
@@ -178,16 +170,14 @@ const applyPageLinks = function(req, res, page, pageSize, baseUrl) {
     let link = makeLink(0, "first");
 
     // rel: prev
-    if (page > 0) {
+    if (page > 0)
       link += ", " + makeLink(page - 1, "prev");
-    }
 
     // rel: next
     const moreResults = models.length > pageSize;
 
     if (moreResults) {
       models.pop();
-
       link += ", " + makeLink(page + 1, "next");
     }
 
@@ -200,7 +190,6 @@ const applyPageLinks = function(req, res, page, pageSize, baseUrl) {
     }
 
     res.setHeader("link", link);
-
     cb(null, models, totalCount);
   };
 };
@@ -208,7 +197,6 @@ const applyPageLinks = function(req, res, page, pageSize, baseUrl) {
 const applyTotalCount = function(res) {
   return function applyTotalCountInner(models, totalCount, cb) {
     res.setHeader("X-Total-Count", totalCount);
-
     cb(null, models);
   };
 };
@@ -217,25 +205,22 @@ const applySelect = function(query, options, req) {
   // options select overrides request select
   const select = options.select || req.query.select;
 
-  if (select) {
+  if (select)
     query = query.select(parseCommaParam(select));
-  }
 };
 
 const applyPopulate = function(query, options, req) {
   const populate = req.query.populate || options.populate;
 
-  if (populate) {
+  if (populate)
     query = query.populate(parseCommaParam(populate));
-  }
 };
 
 const applySort = function(query, options, req) {
   const sort = req.query.sort || options.sort;
 
-  if (sort) {
+  if (sort)
     query = query.sort(parseCommaParam(sort));
-  }
 };
 
 const Resource = function(Model, options) {
@@ -249,9 +234,11 @@ const Resource = function(Model, options) {
   this.options.baseUrl = this.options.baseUrl || "";
   this.options.outputFormat = this.options.outputFormat || "regular";
   this.options.modelName = this.options.modelName || Model.modelName;
+
   this.options.listProjection = this.options.listProjection || function(req, item, cb) {
     cb(null, item);
   };
+
   this.options.detailProjection = this.options.detailProjection || function(req, item, cb) {
     cb(null, item);
   };
@@ -283,7 +270,7 @@ Resource.prototype.query = function(options) {
 
         query = query.where(q);
         countQuery = countQuery.where(q);
-      } catch (err) {
+      } catch(err) {
         return res.send(400, { message: "Query is not a valid JSON object", errors: err });
       }
     }
@@ -337,9 +324,8 @@ Resource.prototype.detail = function(options) {
     applySelect(query, options, req);
     applyPopulate(query, options, req);
 
-    if (self.options.filter) {
+    if (self.options.filter)
       query = query.where(self.options.filter(req, res));
-    }
 
     async.waterfall([
       execQuery(query),
@@ -388,22 +374,18 @@ Resource.prototype.update = function(options) {
 
     let query = self.Model.findOne(find);
 
-    if (self.options.filter) {
+    if (self.options.filter)
       query = query.where(self.options.filter(req, res));
-    }
 
     query.exec(function(err, model) {
-      if (err) {
+      if (err)
         return next(err);
-      }
 
-      if (!model) {
+      if (!model)
         return next(new restifyErrors.ResourceNotFoundError(req.params.id));
-      }
 
-      if (!req.body) {
+      if (!req.body)
         return next(new restifyErrors.InvalidContentError("No update data sent"));
-      }
 
       model.set(req.body);
 
@@ -429,23 +411,19 @@ Resource.prototype.remove = function() {
 
     let query = self.Model.findOne(find);
 
-    if (self.options.filter) {
+    if (self.options.filter)
       query = query.where(self.options.filter(req, res));
-    }
 
     query.exec(function(err, model) {
-      if (err) {
+      if (err)
         return next(err);
-      }
 
-      if (!model) {
+      if (!model)
         return next(new restifyErrors.ResourceNotFoundError(req.params.id));
-      }
 
       model.remove(function(err) {
-        if (err) {
+        if (err)
           return next(err);
-        }
 
         res.send(200, model);
         emitRemove(model, next);
@@ -455,21 +433,18 @@ Resource.prototype.remove = function() {
 };
 
 Resource.prototype.serve = function(path, server, options) {
-
   options = options || {};
 
   const handlerChain = function handlerChain(handler, before, after) {
     let handlers = [];
 
-    if (before) {
+    if (before)
       handlers = handlers.concat(before);
-    }
 
     handlers.push(handler);
 
-    if (after) {
+    if (after)
       handlers = handlers.concat(after);
-    }
 
     return handlers;
   };
@@ -507,9 +482,8 @@ Resource.prototype.serve = function(path, server, options) {
 //  E X P O R T
 
 module.exports = function(Model, options) {
-  if (!Model) {
+  if (!Model)
     throw new Error("Model argument is required");
-  }
 
   return new Resource(Model, options);
 };
